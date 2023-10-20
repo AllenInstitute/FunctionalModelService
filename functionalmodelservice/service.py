@@ -1,20 +1,47 @@
-from typing import List
+from typing import Type, TypeVar, List, Union
 from functionalmodelservice.models import (
     Dataset,
     FunctionalModel,
     Stimulus,
     Response,
 )
+import cloudfiles
+import io
+import os
+import pandas as pd
 
-from typing import Type, TypeVar, List, Union
 
 T = TypeVar("T")
+
+
+def fix_local_cloudpath(cloudpath):
+    if "://" not in cloudpath:
+        dir, _ = os.path.split(cloudpath)
+        if len(dir) == 0:
+            cloudpath = "./" + cloudpath
+        cloudpath = "file://" + cloudpath
+    return cloudpath
+
+
+def read_bytes(path):
+    path = fix_local_cloudpath(path)
+    cloudpath, file = os.path.split(path)
+    cf = cloudfiles.CloudFiles(cloudpath)
+    byt = io.BytesIO(cf.get(file))
+    return byt
+
+
+def read_csv(path, **kwargs):
+    print("path", path)
+    byt = read_bytes(path)
+    df = pd.read_csv(byt, **kwargs)
+    return df
 
 
 class ModelService:
     def __init__(self, model: Type[T]):
         self.model = model
-    
+
     def get_all(self) -> List[T]:
         return self.model.query.all()
 
@@ -29,6 +56,16 @@ class ModelService:
 class DatasetService(ModelService):
     def __init__(self):
         super().__init__(Dataset)
+
+    def get_units_dataframe(self, dataset_name: str):
+        dataset = self.get_by_name(dataset_name)
+        print(dataset.units_cloudpath)
+        # if units_cloudpath is a csv file
+        if dataset.units_cloudpath.endswith(".csv"):
+            df = read_csv(dataset.units_cloudpath)
+            return df
+        else:
+            raise ValueError("Unknown file type for units_cloudpath")
 
 
 class FunctionalModelService(ModelService):
@@ -52,6 +89,10 @@ class StimulusService(ModelService):
     def __init__(self):
         super().__init__(Stimulus)
 
+    def get_dataframe(self, stimulus_id: int):
+        stim = self.get_by_id(stimulus_id)
+        return stim.stimulus_cloudpath
+
 
 # Extending ModelService for Dataset model
 class ResponseService(ModelService):
@@ -59,7 +100,7 @@ class ResponseService(ModelService):
         super().__init__(Response)
 
     @staticmethod
-    def get_response_by_model( model_id: int) -> List[Response]:
+    def get_response_by_model(model_id: int) -> List[Response]:
         """returns responses by model
 
         Args:
@@ -69,7 +110,6 @@ class ResponseService(ModelService):
             List[Response]: Responses that meet this criteria
         """
         return Response.query.filter_by(model_id=model_id).all()
-    
+
     def get_response_by_stimulus(self, stimulus_id: int) -> List[Response]:
         return Response.query.filter_by(stimulus_id=stimulus_id).all()
-    
