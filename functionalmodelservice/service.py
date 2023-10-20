@@ -14,7 +14,7 @@ T = TypeVar("T")
 class ModelService:
     def __init__(self, model: Type[T]):
         self.model = model
-
+    
     def get_all(self) -> List[T]:
         return self.model.query.all()
 
@@ -58,7 +58,8 @@ class ResponseService(ModelService):
     def __init__(self):
         super().__init__(Response)
 
-    def get_response_by_model(self, model_id: int) -> List[Response]:
+    @staticmethod
+    def get_response_by_model( model_id: int) -> List[Response]:
         """returns responses by model
 
         Args:

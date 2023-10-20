@@ -37,6 +37,49 @@ class DatasetsResource(Resource):
     @auth_required
     def get(self) -> List:
         """Get all Datasets"""
-        datasets = [a for a in DatasetService.get_all()]
+
+        datasets = [a for a in DatasetService().get_all()]
 
         return [ds["name"] for ds in datasets]
+
+
+@api_bp.route("/datasets/<string:dataset_name>")
+@api_bp.doc("get dataset", security="apikey")
+@api_bp.param("dataset_name", "Dataset Name")
+class DatasetResource(Resource):
+    """Dataset"""
+
+    @auth_required
+    @responds(schema=schemas.DatasetSchema)
+    def get(self, dataset_name: str) -> schemas.DatasetSchema:
+        """Get a Dataset by name"""
+        dataset = DatasetService().get_by_name(dataset_name)
+        return dataset
+
+
+@api_bp.route("/datasets/<string:dataset_name>/models")
+@api_bp.doc("get models by dataset", security="apikey")
+@api_bp.param("dataset_name", "Dataset Name")
+class DatasetModelsResource(Resource):
+    """Models by Dataset"""
+
+    @auth_required
+    @responds(schema=schemas.FunctionalModelSchema(many=True))
+    def get(self, dataset_name: str) -> schemas.FunctionalModelSchema:
+        """Get a Dataset by name"""
+        dataset = DatasetService().get_by_name(dataset_name)
+        return FunctionalModelService().get_models_by_dataset_id(dataset.id)
+
+
+@api_bp.route("/models/<string:model_name>/")
+@api_bp.doc("get model by name", security="apikey")
+@api_bp.param("model_name", "Model Name")
+class ModelResource(Resource):
+    """Model"""
+
+    @auth_required
+    @responds(schema=schemas.FunctionalModelSchema)
+    def get(self, model_name: str) -> schemas.FunctionalModelSchema:
+        """Get a Model by name"""
+        return FunctionalModelService().get_by_name(model_name)
+
