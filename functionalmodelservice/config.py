@@ -11,7 +11,7 @@ class BaseConfig(object):
     DEBUG = True
     # Define the database - we are working with
     # SQLite for this example
-    SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@localhost:5432/datasets"
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@db:5432/datasets"
 
     DATABASE_CONNECT_OPTIONS = {}
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -54,9 +54,5 @@ def configure_app(app):
     else:
         # instance-folders configuration
         app.config.from_pyfile("config.cfg", silent=True)
-    db = SQLAlchemy(model_class=Base)
-    from .schemas import ma
 
-    db.init_app(app)
-    ma.init_app(app)
     return app

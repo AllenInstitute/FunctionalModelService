@@ -15,27 +15,31 @@ class NamedModel(object):
 
 
 class Dataset(NamedModel, Base):
+    __tablename__ = "dataset"
     project = Column(String(200), nullable=False)
     units_cloudpath = Column(String(200), nullable=False)
 
 
-class TrainedFunctionalModel(NamedModel, Base):
-    __tablename__ = "image_source"
-    replaced_by = Column(Integer, ForeignKey("Model.id"), nullable=True)
+class FunctionalModel(NamedModel, Base):
+    __tablename__ = "functionalmodel"
+    replaced_by = Column(Integer, ForeignKey("functionalmodel.id"), nullable=True)
     dataset_id = Column(Integer, ForeignKey("dataset.id"))
     dataset = relationship("Dataset")
+    description = Column(String(500), nullable=False)
 
 
-class Stimuli(NamedModel, Base):
-    __tablename__ = "aligned_volume"
+class Stimulus(NamedModel, Base):
+    __tablename__ = "stimulus"
     stimulus_cloudpath = Column(String(200), nullable=False)
     stimulus_metadata_cloudpath = Column(String(200), nullable=False)
+    length = Column(Integer, nullable=False)
 
 
-class ModeledResponses(Base):
+class Response(Base):
+    __tablename__ = "response"
     id = Column(Integer, primary_key=True)
-    stimulus_id = Column(Integer, ForeignKey("stimuli.id"))
-    stimulus = relationship("Stimuli")
-    model_id = Column(Integer, ForeignKey("Model.id"))
-    model = relationship("Model")
+    stimulus_id = Column(Integer, ForeignKey("stimulus.id"))
+    stimulus = relationship("Stimulus")
+    model_id = Column(Integer, ForeignKey("functionalmodel.id"))
+    model = relationship("FunctionalModel")
     responses_cloudpath = Column(String(200), nullable=False)

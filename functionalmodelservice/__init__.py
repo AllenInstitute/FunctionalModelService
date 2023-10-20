@@ -3,6 +3,7 @@ from functionalmodelservice.config import configure_app
 from functionalmodelservice.database import Base
 from functionalmodelservice.utils import get_instance_folder_path
 from functionalmodelservice.admin import setup_admin  # noQA: E402
+from functionalmodelservice.api import api_bp
 
 # TODO: implement api
 # from functionalmodelservice.api import api_bp  # noQA: E402
@@ -41,12 +42,6 @@ def create_app(test_config=None):
     # app.wsgi_app = ReverseProxied(app.wsgi_app)
     logging.basicConfig(level=logging.DEBUG)
 
-    # load configuration (from test_config if passed)
-    if test_config is None:
-        app = configure_app(app)
-    else:
-        app.config.update(test_config)
-
     apibp = Blueprint("api", __name__, url_prefix="/functionalmodel/api")
 
     @auth_required
@@ -54,15 +49,25 @@ def create_app(test_config=None):
     def versions():
         return jsonify([2]), 200
 
+    # load configuration (from test_config if passed)
+    if test_config is None:
+        app = configure_app(app)
+    else:
+        app.config.update(test_config)
+
     with app.app_context():
         # app.register_blueprint(views_bp, url_prefix="/functionalmodel")
         api = Api(
             apibp, title="Functional Model Service API", version=__version__, doc="/doc"
         )
-        # api.add_namespace(api_bp, path="/v1")
+        api.add_namespace(api_bp, path="/v1")
 
-        app.register_blueprint(api_bp)
+        app.register_blueprint(apibp)
+
+        from .schemas import ma
+
         db.init_app(app)
+        ma.init_app(app)
         migrate.init_app(app, db)
         # db.create_all()
         admin = setup_admin(app, db)
@@ -72,7 +77,7 @@ def create_app(test_config=None):
         return jsonify("healthy"), 200
 
     @auth_required
-    @app.route("/info/site-map")
+    @app.route("/functionalmodel/site-map")
     def site_map():
         links = []
         for rule in app.url_map.iter_rules():

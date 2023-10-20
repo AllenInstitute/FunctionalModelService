@@ -9,17 +9,16 @@ class DatasetSchema(ma.SQLAlchemyAutoSchema):
         model = models.Dataset
 
 
-class TrainedFunctionalModelSchema(ma.SQLAlchemyAutoSchema):
+class FunctionalModelSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = models.TrainedFunctionalModel
+        model = models.FunctionalModel
 
 
-class StimuliSchema(ma.SQLAlchemyAutoSchema):
+class StimulusSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = models.Stimuli
+        model = models.Stimulus
 
 
-class ModeledResponsesSchema(ma.SQLAlchemyAutoSchema):
+class ResponseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = models.ModeledResponses
-
+        model = models.Response

@@ -2,9 +2,9 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from functionalmodelservice.models import (
     Dataset,
-    TrainedFunctionalModel,
-    Stimuli,
-    ModeledResponses,
+    FunctionalModel,
+    Stimulus,
+    Response,
 )
 from middle_auth_client import auth_requires_admin, auth_required
 from flask import redirect, url_for, request, g
@@ -43,8 +43,8 @@ def setup_admin(app, db):
         index_view=MyAdminIndexView(url="/functionalmodel/admin"),
     )
     admin.add_view(SuperAdminView(Dataset, db.session))
-    admin.add_view(SuperAdminView(TrainedFunctionalModel, db.session))
-    admin.add_view(SuperAdminView(Stimuli, db.session))
-    admin.add_view(SuperAdminView(ModeledResponses, db.session))
+    admin.add_view(SuperAdminView(FunctionalModel, db.session))
+    admin.add_view(SuperAdminView(Stimulus, db.session))
+    admin.add_view(SuperAdminView(Response, db.session))
 
     return admin
